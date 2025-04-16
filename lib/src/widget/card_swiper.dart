@@ -11,7 +11,61 @@ import 'package:flutter_card_swiper/src/utils/undoable.dart';
 
 part 'card_swiper_state.dart';
 
+/// Callback for when swipe progress changes
+///
+/// Parameters:
+/// * [horizontalProgress] - horizontal swipe progress from -100 to 100 (negative for left swipe, positive for right swipe)
+/// * [verticalProgress] - vertical swipe progress from -100 to 100 (negative for upward swipe, positive for downward swipe)
+typedef CardSwiperProgressCallback = void Function(
+    int horizontalProgress,
+    int verticalProgress,
+    );
+
 class CardSwiper extends StatefulWidget {
+  const CardSwiper({
+    required this.cardBuilder,
+    required this.cardsCount,
+    this.controller,
+    this.initialIndex = 0,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+    this.duration = const Duration(milliseconds: 200),
+    this.maxAngle = 30,
+    this.threshold = 50,
+    this.scale = 0.9,
+    this.isDisabled = false,
+    this.onTapDisabled,
+    this.onSwipe,
+    this.onEnd,
+    this.onSwipeDirectionChange,
+    this.onSwipeProgressChange,
+    this.allowedSwipeDirection = const AllowedSwipeDirection.all(),
+    this.isLoop = true,
+    this.numberOfCardsDisplayed = 2,
+    this.onUndo,
+    this.backCardOffset = const Offset(0, 40),
+    super.key,
+  })
+      : assert(
+  maxAngle >= 0 && maxAngle <= 360,
+  'maxAngle must be between 0 and 360',
+  ),
+        assert(
+        threshold >= 1 && threshold <= 100,
+        'threshold must be between 1 and 100',
+        ),
+        assert(
+        scale >= 0 && scale <= 1,
+        'scale must be between 0 and 1',
+        ),
+        assert(
+        numberOfCardsDisplayed >= 1 && numberOfCardsDisplayed <= cardsCount,
+        'you must display at least one card, and no more than [cardsCount]',
+        ),
+        assert(
+        initialIndex >= 0 && initialIndex < cardsCount,
+        'initialIndex must be between 0 and [cardsCount]',
+        );
+
   /// Function that builds each card in the stack.
   ///
   /// The function is called with the index of the card to be built, the build context, the ratio
@@ -112,6 +166,11 @@ class CardSwiper extends StatefulWidget {
   /// The function is called with the last detected horizontal direction and the last detected vertical direction
   final CardSwiperDirectionChange? onSwipeDirectionChange;
 
+  /// Callback function that is called when swipe progress changes.
+  ///
+  /// The function is called with the horizontal progress and vertical progress
+  final CardSwiperProgressCallback? onSwipeProgressChange;
+
   /// The offset of the back card from the front card.
   ///
   /// In order to keep the back card position same after changing the [backCardOffset],
@@ -121,48 +180,6 @@ class CardSwiper extends StatefulWidget {
   ///
   /// Must be a positive value. Defaults to Offset(0, 40).
   final Offset backCardOffset;
-
-  const CardSwiper({
-    required this.cardBuilder,
-    required this.cardsCount,
-    this.controller,
-    this.initialIndex = 0,
-    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-    this.duration = const Duration(milliseconds: 200),
-    this.maxAngle = 30,
-    this.threshold = 50,
-    this.scale = 0.9,
-    this.isDisabled = false,
-    this.onTapDisabled,
-    this.onSwipe,
-    this.onEnd,
-    this.onSwipeDirectionChange,
-    this.allowedSwipeDirection = const AllowedSwipeDirection.all(),
-    this.isLoop = true,
-    this.numberOfCardsDisplayed = 2,
-    this.onUndo,
-    this.backCardOffset = const Offset(0, 40),
-    super.key,
-  })  : assert(
-          maxAngle >= 0 && maxAngle <= 360,
-          'maxAngle must be between 0 and 360',
-        ),
-        assert(
-          threshold >= 1 && threshold <= 100,
-          'threshold must be between 1 and 100',
-        ),
-        assert(
-          scale >= 0 && scale <= 1,
-          'scale must be between 0 and 1',
-        ),
-        assert(
-          numberOfCardsDisplayed >= 1 && numberOfCardsDisplayed <= cardsCount,
-          'you must display at least one card, and no more than [cardsCount]',
-        ),
-        assert(
-          initialIndex >= 0 && initialIndex < cardsCount,
-          'initialIndex must be between 0 and [cardsCount]',
-        );
 
   @override
   State createState() => _CardSwiperState();

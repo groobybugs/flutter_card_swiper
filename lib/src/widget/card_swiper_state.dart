@@ -22,6 +22,10 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
   StreamSubscription<ControllerEvent>? controllerSubscription;
 
+  // Track the current swipe progress
+  int _horizontalProgress = 0;
+  int _verticalProgress = 0;
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +67,30 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
     widget.onSwipeDirectionChange
         ?.call(_detectedHorizontalDirection, _detectedVerticalDirection);
+  }
+
+  // Update and notify swipe progress
+  void _updateSwipeProgress() {
+    if (widget.onSwipeProgressChange != null) {
+      // Calculate raw progress values
+      final rawHorizontalProgress = _cardAnimation.left / widget.threshold / 8;
+      final rawVerticalProgress = _cardAnimation.top / widget.threshold / 8;
+
+      // Normalize to ensure values are within -100 to 100 range
+      final horizontalProgress =
+      (rawHorizontalProgress.clamp(-1.0, 1.0) * 100).ceil();
+      final verticalProgress =
+      (rawVerticalProgress.clamp(-1.0, 1.0) * 100).ceil();
+
+      // Only notify if the progress has changed
+      if (_horizontalProgress != horizontalProgress ||
+          _verticalProgress != verticalProgress) {
+        _horizontalProgress = horizontalProgress;
+        _verticalProgress = verticalProgress;
+        widget.onSwipeProgressChange
+            ?.call(_horizontalProgress, _verticalProgress);
+      }
+    }
   }
 
   @override
@@ -127,13 +155,14 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
         },
         onPanUpdate: (tapInfo) {
           if (!widget.isDisabled) {
-            setState(
-              () => _cardAnimation.update(
+            setState(() {
+              _cardAnimation.update(
                 tapInfo.delta.dx,
                 tapInfo.delta.dy,
                 _tappedOnTop,
-              ),
-            );
+              );
+              _updateSwipeProgress();
+            });
           }
         },
         onPanEnd: (tapInfo) {
@@ -170,7 +199,10 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
   void _animationListener() {
     if (_animationController.status == AnimationStatus.forward) {
-      setState(_cardAnimation.sync);
+      setState(() {
+        _cardAnimation.sync();
+        _updateSwipeProgress();
+      });
     }
   }
 
@@ -207,11 +239,15 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
   void _reset() {
     onSwipeDirectionChanged(CardSwiperDirection.none);
-    _detectedDirection = CardSwiperDirection.none;
     setState(() {
+      _swipeType = SwipeType.none;
+      _detectedDirection = CardSwiperDirection.none;
       _animationController.reset();
       _cardAnimation.reset();
-      _swipeType = SwipeType.none;
+      // Reset progress and notify
+      _horizontalProgress = 0;
+      _verticalProgress = 0;
+      widget.onSwipeProgressChange?.call(0, 0);
     });
   }
 
