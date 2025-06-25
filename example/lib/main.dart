@@ -44,6 +44,7 @@ class _ExamplePageState extends State<Example> {
                 cardsCount: cards.length,
                 onSwipe: _onSwipe,
                 onUndo: _onUndo,
+                onCardChange: _onCardChange,
                 numberOfCardsDisplayed: 3,
                 backCardOffset: const Offset(40, 40),
                 padding: const EdgeInsets.all(24.0),
@@ -112,5 +113,14 @@ class _ExamplePageState extends State<Example> {
       'The card $currentIndex was undod from the ${direction.name}',
     );
     return true;
+  }
+
+  void _onCardChange(
+    int? previousIndex,
+    int? currentIndex,
+  ) {
+    debugPrint(
+      'Card changed from index $previousIndex to $currentIndex',
+    );
   }
 }

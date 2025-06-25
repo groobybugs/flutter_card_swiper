@@ -35,3 +35,8 @@ typedef CardSwiperOnUndo = bool Function(
   int currentIndex,
   CardSwiperDirection direction,
 );
+
+typedef CardSwiperOnCardChange = void Function(
+  int? previousIndex,
+  int? currentIndex,
+);

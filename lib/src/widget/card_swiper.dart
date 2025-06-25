@@ -38,6 +38,7 @@ class CardSwiper extends StatefulWidget {
     this.onEnd,
     this.onSwipeDirectionChange,
     this.onSwipeProgressChange,
+    this.onCardChange,
     this.allowedSwipeDirection = const AllowedSwipeDirection.all(),
     this.isLoop = true,
     this.numberOfCardsDisplayed = 2,
@@ -170,6 +171,13 @@ class CardSwiper extends StatefulWidget {
   ///
   /// The function is called with the horizontal progress and vertical progress
   final CardSwiperProgressCallback? onSwipeProgressChange;
+
+  /// Callback function that is called when the current card index changes.
+  ///
+  /// The function is called with the previous index and the new current index.
+  /// This callback is triggered whenever the card changes, whether by swiping
+  /// or by using the controller to move to a specific card.
+  final CardSwiperOnCardChange? onCardChange;
 
   /// The offset of the back card from the front card.
   ///

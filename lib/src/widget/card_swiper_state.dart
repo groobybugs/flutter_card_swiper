@@ -13,6 +13,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
   final _undoableIndex = Undoable<int?>(null);
   final Queue<CardSwiperDirection> _directionHistory = Queue();
+  int? _previousIndex;
 
   int? get _currentIndex => _undoableIndex.state;
 
@@ -31,6 +32,9 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
     super.initState();
 
     _undoableIndex.state = widget.initialIndex;
+    _previousIndex = null;
+    // Notify initial card change
+    _notifyCardChange(widget.initialIndex);
 
     controllerSubscription =
         widget.controller?.events.listen(_controllerListener);
@@ -67,6 +71,14 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
 
     widget.onSwipeDirectionChange
         ?.call(_detectedHorizontalDirection, _detectedVerticalDirection);
+  }
+
+  void _notifyCardChange(int? newIndex, [int? previousIndex]) {
+    final prevIndex = previousIndex ?? _previousIndex;
+    if (prevIndex != newIndex) {
+      widget.onCardChange?.call(prevIndex, newIndex);
+      _previousIndex = newIndex;
+    }
   }
 
   // Update and notify swipe progress
@@ -229,6 +241,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
       return;
     }
 
+    _notifyCardChange(_nextIndex, _currentIndex);
     _undoableIndex.state = _nextIndex;
     _directionHistory.add(_detectedDirection);
 
@@ -314,6 +327,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
       return;
     }
 
+    _notifyCardChange(_undoableIndex.previousState, _currentIndex);
     _undoableIndex.undo();
     _directionHistory.removeLast();
     _swipeType = SwipeType.undo;
@@ -325,6 +339,7 @@ class _CardSwiperState<T extends Widget> extends State<CardSwiper>
     if (index < 0 || index >= widget.cardsCount) return;
 
     setState(() {
+      _notifyCardChange(_currentIndex, _undoableIndex.previousState);
       _undoableIndex.state = index;
     });
   }
